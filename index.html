@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Stay Fair! Ensuring Group Fairness in Diffusion Models Across Guidance Scales (NeurIPS 2026)">
+  <meta name="keywords" content="StayFair, diffusion models, guidance, classifier-free guidance, fairness, bias">
+  <title>Stay Fair! Ensuring Group Fairness in Diffusion Models Across Guidance Scales</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/academicons@1.9.4/css/academicons.min.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root {
+      --sf-blue: #2563eb;
+      --sf-gray: #4b5563;
+      --female: #d64541;
+      --male: #2e75b6;
+      --shade: #eef3fd;
+      --text: #1f2328;
+      --muted: #5f6368;
+      --bg: #ffffff;
+      --rule: #e5e7eb;
+      --code-bg: #f5f5f5;
+    }
+    body { font-family: 'Noto Sans', sans-serif; color: var(--text); background: var(--bg); }
+    .publication-title { font-family: 'Google Sans', sans-serif; }
+    .publication-title .italic { font-style: italic; color: var(--sf-blue); }
+    .publication-authors { font-family: 'Google Sans', sans-serif; }
+    .publication-authors a { color: var(--sf-blue) !important; }
+    .publication-authors a:hover { text-decoration: underline; }
+    .author-block { display: inline-block; margin: 0 0.35rem; }
+    .venue { font-family: 'Google Sans', sans-serif; font-weight: 500; color: var(--sf-blue); margin-top: 0.4rem; }
+    .link-block a { margin: 0.25rem 0.15rem; }
+    .section-title { font-family: 'Google Sans', sans-serif; }
+    .tldr {
+      background: var(--shade); border-left: 4px solid var(--sf-blue);
+      padding: 1rem 1.25rem; border-radius: 6px; font-size: 1.1rem;
+    }
+    .figure-caption { color: var(--muted); font-size: 0.95rem; margin-top: 0.6rem; }
+    .figure-caption b { color: var(--text); }
+    img.figure { width: 100%; height: auto; }
+    .content h3.title { margin-top: 2rem; }
+    .key { color: var(--sf-blue); font-weight: 700; }
+    .keyeq {
+      border: 1px solid #c7d6f7; background: #f7f9ff; border-radius: 8px;
+      padding: 0.6rem 0.8rem; margin: 1rem 0; overflow-x: auto;
+    }
+      .theorem { overflow-x: auto;
+      border-left: 3px solid var(--sf-gray); padding: 0.5rem 1rem; margin: 1rem 0; background: #fafafa;
+    }
+
+    /* Result tables */
+    .table-wrap { overflow-x: auto; max-width: 100%; }
+    .column { min-width: 0; }
+    mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
+    table.results { width: 100%; font-size: 0.92rem; border-collapse: collapse; }
+    table.results th, table.results td { padding: 0.35rem 0.5rem; text-align: center; white-space: nowrap; }
+    table.results thead th { border-bottom: 1px solid var(--text); }
+    table.results thead tr:first-child th { border-top: 2px solid var(--text); }
+    table.results tbody tr:last-child td { border-bottom: 2px solid var(--text); }
+    table.results td.l, table.results th.l { text-align: left; }
+    table.results .target { background: var(--shade); }
+    table.results tr.ours td { font-weight: 700; }
+    table.results tr.group-start td { border-top: 1px solid var(--rule); }
+    table.results .sd { color: #9aa0a6; font-size: 0.8em; font-weight: 400; }
+
+    /* Qualitative grid */
+    .qual { display: grid; grid-template-columns: 70px repeat(5, 1fr); gap: 6px; align-items: center; }
+    .qual .lbl { font-family: 'Google Sans', sans-serif; font-weight: 700; font-size: 0.9rem; text-align: right; padding-right: 6px; }
+    .qual .lbl.ours { color: var(--sf-blue); }
+    .qual .w { text-align: center; font-size: 0.85rem; color: var(--muted); }
+    .qual img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border: 3px solid; border-radius: 3px; display: block; }
+    .qual img.f { border-color: var(--female); }
+    .qual img.m { border-color: var(--male); }
+    .qual-title { font-family: 'Google Sans', sans-serif; font-weight: 500; text-align: center; margin-bottom: 0.4rem; }
+    .legend-f { color: var(--female); font-weight: 700; }
+    .legend-m { color: var(--male); font-weight: 700; }
+
+    .panel-labels { display: grid; grid-template-columns: 1fr 1fr 0.35fr; text-align: center; font-family: 'Google Sans', sans-serif; font-weight: 700; margin-bottom: 0.3rem; }
+    .panel-labels .cfg { color: var(--sf-gray); }
+    .panel-labels .ours { color: var(--sf-blue); }
+
+    .stat { text-align: center; }
+    .stat .num { font-family: 'Google Sans', sans-serif; font-size: 2rem; font-weight: 700; color: var(--sf-blue); line-height: 1.1; }
+    .stat .desc { font-size: 0.9rem; color: var(--muted); }
+
+    pre { max-width: 100%; white-space: pre; background: var(--code-bg); border-radius: 6px; padding: 1rem; overflow-x: auto; font-size: 0.85rem; }
+    .footer { background: #fafafa; padding: 2rem 1.5rem; }
+    .footer p { font-size: 0.85rem; color: var(--muted); }
+    .footer a { color: var(--sf-blue); }
+    .todo { background: #fff3cd; color: #7a5b00; padding: 0 4px; border-radius: 3px; font-size: 0.85em; }
+
+    @media (max-width: 768px) {
+      .qual { grid-template-columns: 44px repeat(5, 1fr); gap: 3px; }
+      .qual .lbl { font-size: 0.72rem; }
+      .panel-labels { font-size: 0.8rem; }
+      .publication-title { font-size: 1.8rem !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===================== Header ===================== -->
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">
+            <span class="italic">Stay Fair</span>! Ensuring Group Fairness in Diffusion Models Across Guidance Scales
+          </h1>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><a href="#">Myeongsoo Kim</a><sup>1</sup>,</span>
+            <span class="author-block"><a href="#">Eunji Kim</a><sup>2*</sup>,</span>
+            <span class="author-block"><a href="#">Minwoo Chae</a><sup>1</sup>,</span>
+            <span class="author-block"><a href="#">Sangwoo Mo</a><sup>1</sup></span>
+          </div>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><sup>1</sup>POSTECH</span>
+            <span class="author-block"><sup>2</sup>Amazon</span>
+          </div>
+          <div class="is-size-7 has-text-grey">*The work was done prior to joining Amazon.</div>
+          <div class="is-size-5 venue">NeurIPS 2026</div>
+
+          <div class="link-block" style="margin-top:1rem;">
+            <a href="#" class="button is-dark is-rounded"><span class="icon"><i class="fas fa-file-pdf"></i></span><span>Paper</span></a>
+            <a href="#" class="button is-dark is-rounded"><span class="icon"><i class="ai ai-arxiv"></i></span><span>arXiv</span></a>
+            <a href="https://github.com/Kim-Myeong-Soo/stay-fair" class="button is-dark is-rounded"><span class="icon"><i class="fab fa-github"></i></span><span>Code</span></a>
+            <a href="#" class="button is-dark is-rounded"><span class="icon"><i class="fas fa-image"></i></span><span>Poster</span></a>
+            <a href="#bibtex" class="button is-dark is-rounded"><span class="icon"><i class="fas fa-quote-right"></i></span><span>BibTeX</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== Teaser ===================== -->
+<section class="section" style="padding-top:0;">
+  <div class="container is-max-desktop">
+    <img class="figure" src="static/images/teaser.png" alt="StayFair keeps group ratios stable as the user changes the guidance scale">
+    <p class="figure-caption">
+      <b>StayFair maintains group fairness as users vary the guidance scale.</b>
+      (Left) Users adjust the guidance scale to match their preferences, so fairness should hold at any scale they pick.
+      (Middle, Right) Fairness measured at one fixed scale does not carry over: group ratios drift in both a vanilla model (FLUX.2) and a debiased model (SD1.5 + FT).
+      StayFair keeps the group ratio stable across scales.
+    </p>
+    <div class="tldr" style="margin-top:1.5rem;">
+      <b>TL;DR</b>&nbsp; Raising the guidance scale quietly changes <em>who</em> a diffusion model draws.
+      We show this <span class="key">guidance bias</span> is separate from the model's own bias, and fix it by changing only the guidance step.
+      No retraining and no attribute labels at inference.
+    </div>
+  </div>
+</section>
+
+<!-- ===================== Abstract ===================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3 section-title">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            Diffusion models steer conditional generation with a tunable guidance scale to trade off prompt alignment and diversity.
+            However, existing debiasing techniques are optimized for a single scale, degrading fairness when users adjust this parameter.
+            We trace this behavior to a previously overlooked source by decomposing total bias into two components: a <em>model bias</em> and a <em>guidance bias</em>.
+            While prior work primarily targets the former, we show that the guidance bias varies with the guidance scale, persisting even in models that have already been debiased.
+          </p>
+          <p>
+            To address this, we extend Strong Demographic Parity to guidance and derive a condition under which the target distribution retains its group ratio across guidance scales.
+            Building on this condition, we propose <b>StayFair</b>, which designs fair guidance algorithms in both regimes.
+            For classifier guidance, it equalizes the classifier's output distributions across groups; for classifier-free guidance, it shifts the null embedding by a prompt-dependent offset.
+            Because StayFair modifies only the guidance step, it is orthogonal to model debiasing and can be layered onto existing fair diffusion models.
+            Across class-conditional and text-to-image generation, StayFair decouples fairness from the guidance scale without sacrificing image quality.
+            Our decomposition also enables a more detailed analysis of the sources of bias in diffusion models.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== Key numbers ===================== -->
+<section class="section" style="padding-top:0;">
+  <div class="container is-max-desktop">
+    <div class="columns is-mobile is-multiline">
+      <div class="column is-half-mobile stat"><div class="num">15.9 → 8.4</div><div class="desc">Bias range (%) on FLUX.2</div></div>
+      <div class="column is-half-mobile stat"><div class="num">−8.3 pp</div><div class="desc">Worst-case bias on FLUX.2</div></div>
+      <div class="column is-half-mobile stat"><div class="num">19.3 → 9.4</div><div class="desc">Bias range (%) on debiased SD1.5 + FT</div></div>
+      <div class="column is-half-mobile stat"><div class="num">≈ CFG</div><div class="desc">CLIP, aesthetic and PickScore</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== Problem ===================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 section-title">Guidance creates its own bias</h2>
+    <div class="content has-text-justified">
+      <p>
+        Guidance samples from $p^w_\theta(x_t\mid y)\propto p_\theta(x_t)\,p_\theta(y\mid x_t)^w$, where the user-chosen scale $w$ sets how strongly the condition $y$ is followed.
+        A higher $w$ amplifies not only the condition but also the social bias it carries, so the generated group distribution $Q^w(a\mid y)$ drifts as $w$ changes.
+        We separate the <b>total bias</b> from a target $T(a\mid y)$ into two parts:
+      </p>
+      <div class="keyeq">
+        $$\underbrace{Q^w(a\mid y)-T(a\mid y)}_{\text{Total bias}}
+        \;=\; \underbrace{Q^w(a\mid y)-Q^{w_{\mathrm{ref}}}(a\mid y)}_{\text{Guidance bias } \mathrm{Bias}_{\mathrm{G}}^w}
+        \;+\; \underbrace{Q^{w_{\mathrm{ref}}}(a\mid y)-T(a\mid y)}_{\text{Model bias } \mathrm{Bias}_{\mathrm{M}}}$$
+      </div>
+      <p>
+        Prior work targets <b>model bias</b> at a single scale.
+        <b>Guidance bias</b> is what changes when the user moves the slider.
+        It appears in two places:
+      </p>
+      <ul>
+        <li><b>Vanilla models</b>: guidance pushes the data distribution toward the majority group, more strongly as $w$ grows.</li>
+        <li><b>Debiased models</b>: a model fitted to be fair at $w_{\mathrm{ref}}$ drifts away from its target once $w\neq w_{\mathrm{ref}}$. This holds even when debiasing is fitted across a range of scales.</li>
+      </ul>
+      <p>
+        We therefore ask for <span class="key">fair guidance</span>: $\mathrm{Bias}_{\mathrm{G}}^w(a\mid y)=0$ for every $w\in[w_{\min},w_{\max}]$. The group distribution should not depend on the scale.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== Method ===================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 section-title">StayFair: fair guidance across scales</h2>
+    <img class="figure" src="static/images/method.png" alt="Overview of StayFair for classifier guidance and classifier-free guidance">
+    <p class="figure-caption">
+      <b>Overview of StayFair.</b>
+      (a) In classifier guidance, StayFair adds the fairness constraint $\mathcal{L}_{\mathrm{WDP}}$ when training the classifier $f_\phi$, aligning its output distribution across groups.
+      (b) In classifier-free guidance, StayFair replaces the fixed null prompt $\varnothing$ with an adaptive $\varnothing_y$, shifting its embedding along the attribute direction.
+    </p>
+
+    <div class="content has-text-justified" style="margin-top:1.5rem;">
+      <h3 class="title is-5">A sufficient condition</h3>
+      <p>
+        Because $p^w_t(\cdot\mid y)\propto p^0_t(\cdot\mid y)\,f(\cdot,t)^w$, any group-dependent bias in the guidance function $f$ is raised to the power $w$.
+        We extend Strong Demographic Parity (SDP) to $f$: the law of $f(X_t,t)$ must be the same for every group.
+      </p>
+      <div class="theorem">
+        <b>Theorem 1 (SDP preserves fairness in the target distribution).</b>
+        If $f(\cdot,t)$ satisfies SDP, then for every $w\ge 0$ and groups $a,a'$,
+        $$\frac{p^w_t(a\mid y)}{p^w_t(a'\mid y)}=\frac{p^0_t(a\mid y)}{p^0_t(a'\mid y)}.$$
+        The group ratio stays the same at every guidance scale.
+      </div>
+      <p>
+        Theorem 2 shows that, in a Gaussian setting, SDP also carries over to the distribution actually sampled, giving $\mathrm{Bias}_{\mathrm{G}}^w=0$ for all $w$.
+      </p>
+
+      <h3 class="title is-5">Classifier guidance: equalize the classifier</h3>
+      <p>
+        We train the classifier with an added Wasserstein Demographic Parity loss.
+        Classifier outputs of different groups are matched through an optimal transport plan whose cost also accounts for the noise level:
+      </p>
+      <div class="keyeq">
+        $$\mathcal{L}=\mathcal{L}_{\mathrm{CE}}+\lambda\sum_{a,a'}\mathcal{L}_{\mathrm{WDP}}(a,a')$$
+      </div>
+
+      <h3 class="title is-5">Classifier-free guidance: an adaptive null prompt</h3>
+      <p>
+        In CFG, $f$ is only implicit, so we change the branch it is measured against.
+        We shift the null embedding along the attribute direction by a prompt-dependent amount $\alpha(y)$:
+      </p>
+      <div class="keyeq">
+        $$E(\varnothing_y) = E(\varnothing) + \alpha(y)\,\frac{E(a^+)-E(a^-)}{\lVert E(a^+)-E(a^-)\rVert},
+        \qquad
+        \nabla\log f = \nabla\log p_\theta(x_t\mid y)-\nabla\log p_\theta(x_t\mid\varnothing_y)$$
+      </div>
+      <p>
+        <b>StayFair (Search)</b> finds $\alpha(y)$ by binary search so the group ratios at the lowest and highest scales match.
+        <b>StayFair (Estimate)</b> looks $\alpha(y)$ up from a table of earlier searches, using group ratios from a few generated images.
+        Because only the guidance step changes, StayFair can be layered on any debiased model:
+      </p>
+      <div class="keyeq">
+        $$\epsilon^{\text{StayFair}}=\epsilon^{\text{Fair}}+(w-w_{\mathrm{ref}})\bigl(\epsilon_\theta(x_t,y)-\epsilon_\theta(x_t,\varnothing_y)\bigr)$$
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== Results ===================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 section-title">Results</h2>
+
+    <h3 class="title is-5">Group ratios stay put on FLUX.2</h3>
+    <div class="panel-labels"><div class="cfg">CFG</div><div class="ours">StayFair (ours)</div><div></div></div>
+    <img class="figure" src="static/images/flux_fr_curves_3seed.png" alt="Female ratio versus guidance scale for seven occupations on FLUX.2, CFG versus StayFair">
+    <p class="figure-caption">
+      <b>Unlike CFG, StayFair maintains female ratios across guidance scales.</b>
+      FLUX.2, seven occupations, mean and std over three seeds.
+      Under CFG, occupations collapse toward their majority gender even within the recommended range ($w=3$–$5$).
+    </p>
+
+    <h3 class="title is-5" style="margin-top:2.5rem;">Text-to-image, gender × occupation</h3>
+    <p class="content">
+      33 occupations, five evenly spaced scales per model. <b>Avg.</b>/<b>Worst</b>: total bias (deviation of the female ratio from 0.5) averaged or maximized across scales.
+      <b>Range</b>: guidance bias, max − min of the female ratio across scales. Mean ± std over three seeds.
+    </p>
+    <div class="table-wrap">
+      <table class="results">
+        <thead>
+          <tr><th class="l" colspan="2">(a) Vanilla generation</th><th colspan="3">Bias (%) ↓</th><th colspan="3">Quality ↑</th></tr>
+          <tr><th class="l">Model</th><th class="l">Guidance</th><th>Avg.</th><th>Worst</th><th class="target">Range</th><th>CLIP</th><th>Aesth.</th><th>Pick</th></tr>
+        </thead>
+        <tbody>
+          <tr class="group-start"><td class="l" rowspan="2">SD1.5</td><td class="l">CFG</td><td>28.0<span class="sd"> ±0.3</span></td><td>32.5<span class="sd"> ±0.5</span></td><td class="target">10.7<span class="sd"> ±0.7</span></td><td>27.61</td><td>6.70</td><td>19.99</td></tr>
+          <tr class="ours"><td class="l">StayFair</td><td>27.6<span class="sd"> ±0.6</span></td><td>30.8<span class="sd"> ±0.5</span></td><td class="target">7.2<span class="sd"> ±0.3</span></td><td>27.62</td><td>6.70</td><td>19.96</td></tr>
+          <tr class="group-start"><td class="l" rowspan="2">SD3</td><td class="l">CFG</td><td>39.7<span class="sd"> ±0.5</span></td><td>43.0<span class="sd"> ±0.4</span></td><td class="target">9.1<span class="sd"> ±0.3</span></td><td>27.36</td><td>6.62</td><td>20.29</td></tr>
+          <tr class="ours"><td class="l">StayFair</td><td>33.9<span class="sd"> ±0.5</span></td><td>36.6<span class="sd"> ±0.5</span></td><td class="target">6.3<span class="sd"> ±0.2</span></td><td>27.38</td><td>6.61</td><td>20.23</td></tr>
+          <tr class="group-start"><td class="l" rowspan="2">FLUX.2</td><td class="l">CFG</td><td>39.4<span class="sd"> ±0.2</span></td><td>44.3<span class="sd"> ±0.2</span></td><td class="target">15.9<span class="sd"> ±0.6</span></td><td>28.18</td><td>6.93</td><td>21.15</td></tr>
+          <tr class="ours"><td class="l">StayFair</td><td>32.7<span class="sd"> ±0.3</span></td><td>36.0<span class="sd"> ±0.1</span></td><td class="target">8.4<span class="sd"> ±0.9</span></td><td>28.17</td><td>6.93</td><td>21.18</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-wrap" style="margin-top:1.5rem;">
+      <table class="results">
+        <thead>
+          <tr><th class="l" colspan="3">(b) Debiased generation (SD1.5)</th><th colspan="3">Bias (%) ↓</th><th colspan="3">Quality ↑</th></tr>
+          <tr><th class="l">Method</th><th class="l">Scales</th><th class="l">Guidance</th><th>Avg.</th><th>Worst</th><th class="target">Range</th><th>CLIP</th><th>Aesth.</th><th>Pick</th></tr>
+        </thead>
+        <tbody>
+          <tr class="group-start"><td class="l" rowspan="4">UCE</td><td class="l">Single</td><td class="l">CFG</td><td>18.0</td><td>23.4</td><td class="target">13.2</td><td>27.28</td><td>6.70</td><td>19.96</td></tr>
+          <tr><td class="l">Multi (random)</td><td class="l">CFG</td><td>19.1</td><td>24.2</td><td class="target">13.7</td><td>27.38</td><td>6.71</td><td>19.89</td></tr>
+          <tr><td class="l">Multi (per-scale)</td><td class="l">CFG</td><td>17.7</td><td>29.4</td><td class="target">30.6</td><td>27.32</td><td>6.71</td><td>19.92</td></tr>
+          <tr class="ours"><td class="l">Single</td><td class="l">StayFair</td><td>18.5</td><td>22.2</td><td class="target">7.6</td><td>27.28</td><td>6.70</td><td>19.96</td></tr>
+          <tr class="group-start"><td class="l" rowspan="4">FT</td><td class="l">Single</td><td class="l">CFG</td><td>14.1</td><td>21.3</td><td class="target">19.3</td><td>27.54</td><td>6.77</td><td>20.03</td></tr>
+          <tr><td class="l">Multi (random)</td><td class="l">CFG</td><td>16.5</td><td>21.3</td><td class="target">12.0</td><td>27.63</td><td>6.79</td><td>20.07</td></tr>
+          <tr><td class="l">Multi (per-scale)</td><td class="l">CFG</td><td>13.6</td><td>22.0</td><td class="target">17.9</td><td>27.62</td><td>6.77</td><td>20.03</td></tr>
+          <tr class="ours"><td class="l">Single</td><td class="l">StayFair</td><td>13.8</td><td>18.2</td><td class="target">9.4</td><td>27.53</td><td>6.77</td><td>20.03</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="figure-caption">
+      StayFair lowers the bias range on every model while quality stays at CFG's level.
+      On debiased models it keeps their average debiasing performance and reduces worst-case bias.
+      It also gives smaller ranges than extending debiasing itself across scales (Multi).
+    </p>
+
+    <h3 class="title is-5" style="margin-top:2.5rem;">Qualitative comparison (FLUX.2)</h3>
+    <p class="content">Border: <span class="legend-f">female</span>, <span class="legend-m">male</span>.</p>
+    <div class="columns">
+      <div class="column">
+        <div class="qual-title">Scientist <span class="has-text-grey">(minority: <span class="legend-f">female</span>)</span></div>
+        <div class="qual">
+          <div></div><div class="w">w=1</div><div class="w">w=2</div><div class="w">w=3</div><div class="w">w=4</div><div class="w">w=5</div>
+          <div class="lbl">CFG</div>
+          <img class="f" src="static/images/qual/sci_cfg_w1.jpg" alt="Scientist, CFG, w=1"><img class="m" src="static/images/qual/sci_cfg_w2.jpg" alt="Scientist, CFG, w=2"><img class="m" src="static/images/qual/sci_cfg_w3.jpg" alt="Scientist, CFG, w=3"><img class="m" src="static/images/qual/sci_cfg_w4.jpg" alt="Scientist, CFG, w=4"><img class="m" src="static/images/qual/sci_cfg_w5.jpg" alt="Scientist, CFG, w=5">
+          <div class="lbl ours">StayFair</div>
+          <img class="f" src="static/images/qual/sci_sf_w1.jpg" alt="Scientist, StayFair, w=1"><img class="f" src="static/images/qual/sci_sf_w2.jpg" alt="Scientist, StayFair, w=2"><img class="f" src="static/images/qual/sci_sf_w3.jpg" alt="Scientist, StayFair, w=3"><img class="f" src="static/images/qual/sci_sf_w4.jpg" alt="Scientist, StayFair, w=4"><img class="f" src="static/images/qual/sci_sf_w5.jpg" alt="Scientist, StayFair, w=5">
+        </div>
+      </div>
+      <div class="column">
+        <div class="qual-title">Teacher <span class="has-text-grey">(minority: <span class="legend-m">male</span>)</span></div>
+        <div class="qual">
+          <div></div><div class="w">w=1</div><div class="w">w=2</div><div class="w">w=3</div><div class="w">w=4</div><div class="w">w=5</div>
+          <div class="lbl">CFG</div>
+          <img class="m" src="static/images/qual/tea_cfg_w1.jpg" alt="Teacher, CFG, w=1"><img class="m" src="static/images/qual/tea_cfg_w2.jpg" alt="Teacher, CFG, w=2"><img class="f" src="static/images/qual/tea_cfg_w3.jpg" alt="Teacher, CFG, w=3"><img class="f" src="static/images/qual/tea_cfg_w4.jpg" alt="Teacher, CFG, w=4"><img class="f" src="static/images/qual/tea_cfg_w5.jpg" alt="Teacher, CFG, w=5">
+          <div class="lbl ours">StayFair</div>
+          <img class="m" src="static/images/qual/tea_sf_w1.jpg" alt="Teacher, StayFair, w=1"><img class="m" src="static/images/qual/tea_sf_w2.jpg" alt="Teacher, StayFair, w=2"><img class="m" src="static/images/qual/tea_sf_w3.jpg" alt="Teacher, StayFair, w=3"><img class="m" src="static/images/qual/tea_sf_w4.jpg" alt="Teacher, StayFair, w=4"><img class="m" src="static/images/qual/tea_sf_w5.jpg" alt="Teacher, StayFair, w=5">
+        </div>
+      </div>
+    </div>
+    <p class="figure-caption"><b>StayFair preserves the minority gender across guidance scales</b> while keeping visual context close to CFG.</p>
+
+  </div>
+</section>
+
+<!-- ===================== Analysis ===================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 section-title">Analysis: Guidance bias explains asymmetric amplification</h2>
+    <div class="content has-text-justified">
+      <p>
+        Recent text-to-image models over-represent the majority gender relative to workforce ratios more often when that majority is <span class="legend-m">male</span> than when it is <span class="legend-f">female</span>.
+        Separating guidance bias from total bias reveals an overlooked source of this asymmetry.
+      </p>
+    </div>
+    <img class="figure" src="static/images/asym_amplification.png" alt="Female ratio at the highest versus lowest guidance scale for occupation-template pairs on SD3 and FLUX.2">
+    <p class="figure-caption">
+      <b>Guidance amplifies male bias more strongly in recent T2I diffusion models.</b>
+      Each point is an occupation–template pair; its deviation from $y=x$ reflects guidance bias across scales.
+      Points and fitted curves deviate more from $y=x$ below each fitted crossing than above it, indicating stronger guidance bias toward men than toward women.
+    </p>
+    <div class="columns is-mobile" style="margin-top:1.25rem;">
+      <div class="column stat"><div class="num" style="font-size:1.5rem;">80.9% vs 62.5%</div><div class="desc">SD3: guidance amplifies bias when the real-world majority is male vs. female</div></div>
+      <div class="column stat"><div class="num" style="font-size:1.5rem;">97.1% vs 32.8%</div><div class="desc">FLUX.2: same comparison</div></div>
+    </div>
+    <div class="content has-text-justified">
+      <p>
+        We attribute this asymmetry to a <b>female bias in the null branch</b> $p_\theta(\cdot\mid\varnothing)$, indicated by fitted crossings with $y=x$ above 0.5 (SD3: 0.63, FLUX.2: 0.66).
+        Because CFG subtracts the null branch, this female bias offsets the female bias in the guidance function $f$, so male bias is amplified more strongly even for comparably biased occupation prompts.
+        Shifting $\varnothing$ toward male reduces the asymmetry and moves the crossings toward 0.5.
+        These findings call for finer-grained fairness evaluation that distinguishes guidance bias within total bias.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== Limitations ===================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 section-title">Scope and limitations</h2>
+    <div class="content">
+      <ul>
+        <li>For CFG, StayFair <b>reduces</b> group bias in the implicit guidance function; it does not exactly enforce SDP.</li>
+        <li>$\alpha(y)$ is set from group ratios measured by a predictor, so errors in that predictor can carry over.</li>
+        <li>StayFair targets <b>guidance bias</b> only. It does not remove the model's own bias; combine it with a debiased model for that.</li>
+        <li>Our main analysis covers binary gender, with a supplementary race analysis. Other attributes remain future work.</li>
+      </ul>
+      <p class="is-size-7"><span class="todo">TODO</span> Match this wording to the final Limitations section of the camera-ready.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== BibTeX ===================== -->
+<section class="section" id="bibtex">
+  <div class="container is-max-desktop content" style="overflow:hidden;">
+    <h2 class="title is-3 section-title">BibTeX</h2>
+<pre><code>@inproceedings{kim2026stayfair,
+  title     = {Stay Fair! Ensuring Group Fairness in Diffusion Models Across Guidance Scales},
+  author    = {Kim, Myeongsoo and Kim, Eunji and Chae, Minwoo and Mo, Sangwoo},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2026}
+}</code></pre>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container is-max-desktop">
+    <div class="content has-text-centered">
+      <p>
+        This page is adapted from the <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a> project page template,
+        licensed under <a href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.
+      </p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
