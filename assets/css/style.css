@@ -390,7 +390,9 @@ input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 5px 
 .m-fig .cfg-plot { width: 100%; max-width: 860px; margin: 0 auto; }
 .typeset-eq { max-width: 100%; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 6px 20px; overflow-x: auto; }
 .typeset-eq mjx-container { font-size: 112% !important; }
-.typeset-eq .hl-total, .typeset-eq .hl-guid, .typeset-eq .hl-model, .typeset-eq .hl-fair { padding: 3px 6px; border-radius: 5px; }
+.typeset-eq .eq-note { color: var(--muted); font-size: 82%; }
+.typeset-eq .hl-total, .typeset-eq .hl-guid, .typeset-eq .hl-model, .typeset-eq .hl-fair, .typeset-eq .hl-null { padding: 3px 6px; border-radius: 5px; }
+.typeset-eq .hl-null { background: rgba(46, 125, 50, 0.16); }
 .typeset-eq .hl-total { background: rgba(138, 146, 156, 0.22); }
 .typeset-eq .hl-guid { background: rgba(192, 57, 43, 0.18); outline: 1.5px solid rgba(192, 57, 43, 0.55); font-weight: 700; }
 .typeset-eq .hl-model { background: rgba(120, 128, 140, 0.20); }

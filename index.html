@@ -25,7 +25,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.4/css/academicons.min.css">
-  <link rel="stylesheet" href="assets/css/style.css?v=20261010q">
+  <link rel="stylesheet" href="assets/css/style.css?v=20261010s">
   <script>
     window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }, chtml: { scale: 0.98 } };
   </script>
@@ -185,8 +185,8 @@
 
     <div class="pb-q m-block reveal">
       <h3 class="m-head">For Classifier-Free Guidance,</h3>
-      <p class="pb-lead">StayFair uses an <mark class="mk-null">adaptive null prompt $\varnothing_y$</mark> to flatten the group ratio across scales.</p>
-      <div class="typeset-eq">$$\begin{gathered} \nabla\log f = \nabla\log p_\theta(x_t\mid y) - \nabla\log p_\theta(x_t\mid {\color{#2e7d32}{\varnothing_y}}) \\ E({\color{#2e7d32}{\varnothing_y}}) = E(\varnothing) + \alpha(y)\,\frac{E(a^+)-E(a^-)}{\lVert E(a^+)-E(a^-)\rVert} \end{gathered}$$</div>
+      <p class="pb-lead">StayFair keeps the CFG formula and only replaces its null prompt $\varnothing$ with an <mark class="mk-null">adaptive null prompt $\varnothing_y$</mark>.</p>
+      <div class="typeset-eq">$$\begin{aligned} &\text{StayFair guidance:} && \nabla\log f = \nabla\log p_\theta(x_t\mid y) - \nabla\log p_\theta(x_t\mid {\color{#2e7d32}{\varnothing_y}}) \\ &\class{hl-null}{\text{Adaptive null prompt}}: && E({\color{#2e7d32}{\varnothing_y}}) = E(\varnothing) + \alpha(y)\,\frac{E(a^+)-E(a^-)}{\lVert E(a^+)-E(a^-)\rVert} \end{aligned}$$</div>
     </div>
     <figure class="mcard card reveal m-fig">
       <div class="cfg-plot">
