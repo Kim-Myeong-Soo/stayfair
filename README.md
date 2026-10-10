@@ -1,14 +1,14 @@
 # Stay Fair! — Project Page
 
 Project page for **Stay Fair! Ensuring Group Fairness in Diffusion Models Across Guidance Scales** (NeurIPS 2026).
+Paper: https://arxiv.org/abs/2605.28036 · Code: https://github.com/Kim-Myeong-Soo/stay-fair
 
-- Page: `index.html` (static, no build step). Images live in `static/images/`.
-- Local preview: `python3 -m http.server` in this folder, then open http://localhost:8000.
-- Publish: make the repository public, then Settings → Pages → Deploy from branch `main` / root.
-  The page will be served at https://kim-myeong-soo.github.io/stayfair/.
+- `index.html` — the page (static, no build step). Math is rendered with MathJax from a CDN.
+- `assets/css/style.css`, `assets/js/main.js` — styles and the interactive figures (inline SVG).
+- `assets/js/results-data.js` — per-occupation female ratios for the Results plots, from `results/female_ratio_*.csv` of the code repo (mean over three seeds).
+- `static/images/` — the method figure, Figure 7 crop, sample images for the Motivation demo (`demo/`), and the share image (`og.png`).
 
-## Before publishing
-- [ ] Fill in Paper / arXiv / Poster links and author homepages (currently `#`).
-- [ ] Match the "Scope and limitations" wording to the camera-ready.
+Local preview: `python3 -m http.server` in this folder, then open http://localhost:8000.
+Publish: Settings → Pages → Deploy from branch `main` / root → https://kim-myeong-soo.github.io/stayfair/.
 
-Template adapted from [Nerfies](https://github.com/nerfies/nerfies.github.io) (CC BY-SA 4.0).
+When editing CSS or JS, bump the `?v=` query in `index.html` so browsers pick up the change.
