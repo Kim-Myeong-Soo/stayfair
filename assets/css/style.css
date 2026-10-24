@@ -165,6 +165,7 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
 .demo-right { display: grid; gap: 16px; min-width: 0; }
 .demo-caption { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.55; }
 .demo-caption strong { color: var(--text); font-weight: 650; }
+.demo-summary b { font-weight: 750; }
 
 .settings { overflow: hidden; }
 .settings-title {
