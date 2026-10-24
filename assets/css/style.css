@@ -101,7 +101,7 @@ em { font-style: italic; }
 }
 
 /* ---------- Hero ---------- */
-.hero { padding: clamp(56px, 10vw, 112px) 0 16px; text-align: center; }
+.hero { padding: clamp(56px, 10vw, 112px) 0 clamp(32px, 5vw, 56px); text-align: center; }
 .hero-title { margin: 0; font-weight: 800; letter-spacing: -0.035em; line-height: 1.02; }
 .hero-title .mega { display: block; font-size: clamp(56px, 11vw, 128px); color: var(--blue); }
 .hero-sub {
@@ -158,7 +158,7 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
 }
 
 /* ---------- Overview demo ---------- */
-.overview { padding-top: 16px; }
+.overview { padding-top: clamp(24px, 4vw, 48px); }
 .overview .section-head, .center-head { text-align: center; }
 .headline { text-wrap: balance; }
 .demo { display: grid; gap: 16px; max-width: 1000px; margin: 0 auto; }
