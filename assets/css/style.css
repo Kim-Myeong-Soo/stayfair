@@ -137,8 +137,8 @@ em { font-style: italic; }
 .headline-main { display: block; }
 .headline-sub { max-width: 720px; margin: 18px auto 0; font-size: clamp(17px, 1.8vw, 20px); line-height: 1.55; color: var(--muted); }
 .headline-sub.one-line { max-width: none; }
-.headline-sub .w-cfg { color: var(--cfg); font-weight: 750; }
-.headline-sub .w-sf { color: var(--blue); font-weight: 750; }
+.headline-sub .w-cfg, .demo-caption .w-cfg { color: var(--cfg); font-weight: 750; }
+.headline-sub .w-sf, .demo-caption .w-sf { color: var(--blue); font-weight: 750; }
 .mega-h { margin: 0; font-size: clamp(44px, 8vw, 88px); font-weight: 800; letter-spacing: -0.04em; line-height: 1; color: var(--text); }
 .h2 { text-wrap: balance; margin: 0; font-size: clamp(28px, 4vw, 44px); font-weight: 750; letter-spacing: -0.025em; line-height: 1.12; }
 .h3 { font-size: 21px; font-weight: 700; letter-spacing: -0.01em; margin: 48px 0 14px; }
